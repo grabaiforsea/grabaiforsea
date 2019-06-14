@@ -1,3 +1,5 @@
+import cv2
+import time
 import tensorflow as tf
 
 import keras
@@ -26,6 +28,14 @@ if __name__ == '__main__':
                 for data in cat_dataset_mat['annotations']:
                         dataset_list = []
                         for x in data:
+                                x.tolist()
+                                img = cv2.imread("cars_train/" + str(x[5][0]))
+                                lin_img = img.flatten()
+                                pixel_list = lin_img.tolist()
+                                pixel_str_list = map(str, pixel_list)
+                                img_str = ' '.join(pixel_str_list)
+                                x[5] = img_str
+                                x = tuple(x) 
                                 dataset_list.append(x)
 
                 config = tf.ConfigProto( device_count = {'GPU': 0 , 'CPU': 56} ) #max: 1 gpu, 56 cpu
@@ -33,20 +43,19 @@ if __name__ == '__main__':
                 keras.backend.set_session(sess)
 
                 #variables
-                num_classes = 196
+                num_classes = car_names.size
                 batch_size = 256
                 epochs = 8
 
-                lines = np.array(dataset_list)
-
-                num_of_instances = lines.size
+                num_of_instances = dataset_list.size
 
                 #initialize trainset and test set
                 x_train, y_train = [], []
 
                 #transfer train and test set data
                 for i in range(1, num_of_instances):
-                        car_class, img, usage = lines[i].split(",")
+                        car_class = dataset_list[i]
+                        img = dataset_list[i]
                         
                         val = img.split(" ")
                         
@@ -125,7 +134,7 @@ if __name__ == '__main__':
                      
                 #make prediction for custom image out of test set
 
-                img = image.load_img("resources/girlwoman.jpg", grayscale=True, target_size=(48, 48))
+                img = image.load_img("00001.jpg", grayscale=True, target_size=(48, 48))
 
                 x = image.img_to_array(img)
                 x = np.expand_dims(x, axis = 0)
